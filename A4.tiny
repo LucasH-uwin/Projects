@@ -1,6 +1,0 @@
-INT MAIN F2() /** INCORRECT PROGRAM. scanner should catch all the input **/
-BEGIN
-  INT X;
-  ELSE 1==2 IF BEGIN END 
-  @#$%^
-END

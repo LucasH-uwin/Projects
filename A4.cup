@@ -1,0 +1,83 @@
+import java.io.*;
+terminal String ASOPERATION,MDOPERATION;
+terminal LPAREN, RPAREN;
+terminal String NUMBER;
+terminal INT, BEGIN, END, WRITE, READ, IF, ELSE, RETURN, MAIN, STRING, REAL, TRUE, FALSE;
+terminal SEMI, EQUAL, COMMA, ASSIGN, NOTEQUAL, BEQUAL;
+terminal String IDENTIFIER, QSTRING;
+
+non terminal String program;
+non terminal String program2;
+non terminal String methodDecl, type, formalParams, nonEmptyParams, formalParam;
+non terminal String block, statementList,statement, assignment, varDecl;
+non terminal String ifStmt, readStmt, writeStmt, returnStmt;
+non terminal String expr,  boolExpr,  params, nonEmptyRealParams;
+
+precedence left ASOPERATION;
+precedence left MDOPERATION;
+precedence nonassoc IF;
+precedence nonassoc ELSE;
+
+program2 ::= program:e1 {: RESULT =  "import java.io.*;\n" + "public class A4 {\n" + "static BufferedReader br;\n" + "static BufferedWriter bw;\n" + e1 + "\n}\n"; :};
+program ::= program:e1 methodDecl:e2 {: RESULT = e1 + e2; :} 
+           | methodDecl:e1 {: RESULT =e1; :};
+
+methodDecl ::= type MAIN IDENTIFIER LPAREN formalParams:e4 RPAREN block:e5 {:RESULT = "public static void main(String[] args) throws Exception \n" + e5 + "\n"; :}
+| type:e1 IDENTIFIER:e2 LPAREN formalParams:e3 RPAREN block:e4 {: RESULT = " public static " +e1+ " "+ e2 +  "(" + e3 + ") throws Exception\n" + e4; :};
+type ::= INT {:RESULT = "int"; :} | REAL {:RESULT = "Double"; :} 
+| STRING {:RESULT = "String"; :} ;
+
+formalParams ::= nonEmptyParams:e1 {: RESULT = e1; :} 
+| {: RESULT = "";:} ;
+nonEmptyParams ::= nonEmptyParams:e1 COMMA formalParam:e3 {:RESULT = e1 + "," + e3; :} 
+| formalParam:e1 {:RESULT = e1; :};
+
+formalParam ::= type:e1 IDENTIFIER:e2 {:RESULT = e1 + " " + e2; :} ;
+
+block ::= BEGIN statementList:e1 END {:RESULT ="\n{\n" + e1 + "\n}\n"; :}
+| BEGIN END {: RESULT = "{\n}\n";:};
+
+statementList ::= statementList:e1 statement:e2 {: RESULT = e1 + e2; :}
+| statement:e1 {:RESULT = e1; :};
+
+statement ::= assignment:e1 {:RESULT = e1; :}
+| varDecl:e1 {:RESULT =e1; :}
+| ifStmt:e1 {:RESULT = e1; :}
+| readStmt:e1 {:RESULT =e1; :}
+| writeStmt:e1 {:RESULT =e1; :}
+| returnStmt:e1 {:RESULT =e1; :}
+| block:e1 {: RESULT = e1; :};
+
+varDecl ::= type:e1 IDENTIFIER:e2 SEMI {: RESULT = e1 + " " + e2+ ";\n"; :} ;
+
+assignment ::= IDENTIFIER:e1 EQUAL expr:e2 SEMI {: RESULT = e1 + " =" + e2+ ";\n"; :}
+| IDENTIFIER:e1 ASSIGN expr:e2 SEMI {: RESULT = e1 + " =" + e2+ ";\n"; :};
+
+ifStmt ::= IF LPAREN boolExpr:e2 RPAREN statement:e3 {: RESULT = "if (" + e2 + ") " + e3 + "\n"; :}
+| IF LPAREN boolExpr:e2 RPAREN statement:e3 ELSE statement:e5 {: RESULT = "if (" + e2 + ") " + e3 + "\n" +"else" + e5; :};
+
+readStmt ::= READ LPAREN IDENTIFIER:e2 COMMA QSTRING:e4 RPAREN SEMI {: RESULT = "br = new BufferedReader(new FileReader(" + e4.replace("'", "\"") + "));\n" + e2 + " = new Integer(br.readLine());\n"; :};
+
+writeStmt ::= WRITE LPAREN expr:e2 COMMA QSTRING:e4 RPAREN SEMI {: RESULT = "bw = new BufferedWriter(new FileWriter(" + e4.replace("'", "\"") + "));\n" + "bw.write(\"\" + (" + e2 + "));\n" + "bw.close();\n"; :};
+
+returnStmt ::= RETURN expr:e2 SEMI {: RESULT = "return " + e2 + ";\n"; :} ;
+
+boolExpr ::= expr:e1 NOTEQUAL expr:e2 {: RESULT =  e1 + "!=" + e2; :}
+| expr:e1 BEQUAL expr:e2 {: RESULT = e1 + "==" + e2; :}
+| TRUE {: RESULT = "true"; :}
+| FALSE {: RESULT = "false"; :};
+
+expr ::= expr:e1 ASOPERATION:e2 expr:e3 {: RESULT =e1 + e2 + e3; :}
+| expr:e1 MDOPERATION:e2 expr:e3 {: RESULT = e1 + e2 + e3; :}
+| NUMBER:e1 {: RESULT = e1; :}
+| QSTRING:e1 {: RESULT = e1.replace ("'", "\"");:}
+| IDENTIFIER:e1 {: RESULT = e1; :}
+| IDENTIFIER:e1 LPAREN params:e2 RPAREN {: RESULT = e1 + "(" + e2 + ")"; :}
+| LPAREN expr:e1 RPAREN {: RESULT = "("+ e1 +")"; :};
+
+
+params ::= nonEmptyRealParams:e1 {: RESULT = e1; :} 
+| {: RESULT = ""; :};
+
+nonEmptyRealParams ::= nonEmptyRealParams:e1 COMMA expr:e3 {: RESULT = e1 + "," + e3; :} 
+| expr:e1 {: RESULT = e1; :};
